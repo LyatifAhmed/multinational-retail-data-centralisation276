@@ -1,9 +1,7 @@
 import pandas as pd
 import tabula as tb
 import requests
-import json
 import boto3
-import io
 
 from database_utils import DatabaseConnector
 

@@ -1,6 +1,5 @@
 import pandas as pd
 import numpy as np
-import math
 
 from data_extraction import DataExtractor
 from database_utils import DatabaseConnector

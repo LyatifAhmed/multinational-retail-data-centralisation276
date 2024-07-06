@@ -129,34 +129,6 @@ class DataExtractor:
 
 if __name__ == "__main__":
     extractor = DataExtractor()
-    '''
-    db = DatabaseConnector()
-    print(db.list_db_tables())
-    '''
-    #print(extractor.read_rds_table('legacy_users'))
-    '''pdf_link = 'https://data-handling-public.s3.eu-west-1.amazonaws.com/card_details.pdf'
-    print(extractor.retrieve_pdf_data(pdf_link))
-    '''
-    '''
-    endpoint_store_details = "https://aqj7u5id95.execute-api.eu-west-1.amazonaws.com/prod/store_details/" 
-    endpoint_store_count = "https://aqj7u5id95.execute-api.eu-west-1.amazonaws.com/prod/number_stores"
-    headers = {
-        'x-api-key': 'yFBQbwXe9J3sd6zWVAMrK6lcxxr0q1lr2PT6DDMX'
-    }
-    stores_number = extractor.list_number_of_stores(endpoint_store_count, headers)
-    
-    stores_data = extractor.retrive_stores_data(stores_number, endpoint_store_details, headers)
-    print(stores_data)'''
-    '''
-    s3_address = 's3://data-handling-public/products.csv'
-    product_df = extractor.extract_from_s3(s3_address)
-    print(product_df)
-    '''
-    
-    s3_address = 'https://data-handling-public.s3.eu-west-1.amazonaws.com/date_details.json'
-    date_data = extractor.extract_from_s3_json(s3_address)
-    print(date_data)
-    
 
     
     

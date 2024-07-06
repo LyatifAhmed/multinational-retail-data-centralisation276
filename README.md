@@ -40,6 +40,10 @@ Data Loading
 - Database Storage: Load the cleaned and transformed data into a database.
 
 ## Getting Started
+```
+gh repo clone LyatifAhmed/multinational-retail-data-centralisation276
+```
+
 ```bash
 .
 ├── database_utils.py

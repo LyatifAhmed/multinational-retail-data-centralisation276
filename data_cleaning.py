@@ -9,32 +9,23 @@ class DataCleaning:
     to clean data from each of the data sources.
     '''
     def __init__(self):
+
         pass
 
-    def clean_user_data(self):
-        '''
-        Clean user data and returns dataframe.
-        '''
-        #from data_extraction import DataExtractor
-        extractor = DataExtractor()
-        user_data = extractor.read_rds_table('legacy_users')
-        # replaces NULL with NaN and drops rows with NaN
-        clean_user_data = user_data.replace('NULL', np.nan).dropna()
-        #put data to correct form objc to datetime
-        clean_user_data['date_of_birth'] = pd.to_datetime(clean_user_data['date_of_birth'], errors = 'coerce')
-        clean_user_data['join_date'] = pd.to_datetime(clean_user_data['join_date'], errors= 'coerce')
-        # This method replaces all non-word characters (anything that is not a letter, digit, or underscore) with an empty string, effectively removing them.
-        clean_user_data['phone_number'] = clean_user_data['phone_number'].str.replace(r'\W', '', regex=True)
-        # Remove duplicated emails
-        clean_user_data = clean_user_data.drop_duplicates(subset=['email_address'])
-        # Droping column index
-        clean_user_data.drop(clean_user_data.columns[0], axis=1, inplace=True)
-        '''
-        to_csv() This method writes the DataFrame to a CSV File.
-        '''
-        clean_user_data.to_csv("users.csv")
+    def clean_user_data(self,legacy_users_table):
+       legacy_users_table.replace('NULL', np.NaN, inplace=True)
+       legacy_users_table.dropna(subset=['date_of_birth', 'email_address', 'user_uuid'], how='any', axis=0, inplace=True)
 
-        return print(clean_user_data) #Cleaned data frame
+       legacy_users_table['date_of_birth'] = pd.to_datetime(legacy_users_table['date_of_birth'], errors = 'coerce')
+       legacy_users_table['join_date'] = pd.to_datetime(legacy_users_table['join_date'], errors ='coerce')
+       legacy_users_table = legacy_users_table.dropna(subset=['join_date'])
+
+       legacy_users_table['phone_number'] = legacy_users_table['phone_number'].str.replace('/W', '')
+       legacy_users_table = legacy_users_table.drop_duplicates(subset=['email_address'])
+        
+       legacy_users_table.drop(legacy_users_table.columns[0], axis=1, inplace=True)
+       legacy_users_table.to_csv("users.csv")
+       return legacy_users_table
         
     def clean_card_data(self):
         #extract pdf data using link from method in data extractor
@@ -47,8 +38,9 @@ class DataCleaning:
         return df
 
     def clean_store_data(self, store_data):
-        #store_data.info
+
         store_data = store_data.reset_index(drop=True)
+        store_data.drop(columns='lat',inplace=True)
         store_data.replace('NULL', np.NaN, inplace=True)
         store_data['opening_date'] = pd.to_datetime(store_data['opening_date'], errors ='coerce')
         store_data['staff_numbers'] = store_data['staff_numbers'].str.replace(r'\D', '')# replaces special characters in staff numbers column with empty space
@@ -138,31 +130,28 @@ class DataCleaning:
     
 
 if __name__ == "__main__":
+    
     cleaning = DataCleaning()
     extractor = DataExtractor()
     connector = DatabaseConnector()
-
-    #list column names 
-    #print(list(cleaning.clean_user_data()))
-    #['first_name', 'last_name', 'date_of_birth', 'company', 'email_address', 'address', 'country', 'country_code', 'phone_number', 'join_date', 'user_uuid']
-    
-    #db_creds = connector.read_db_creds()
-    #engine = connector.init_db_engine()
-    #table_names = connector.list_db_tables()
-    #print(table_names)
-    #legacy_users_table = extractor.read_rds_table('legacy_users')
-    
+    '''
     # User Data
+    legacy_users_table = extractor.read_rds_table('legacy_users')
+    clean_data_user = cleaning.clean_user_data(legacy_users_table)
+    clean_data_user.info()
+    print(clean_data_user)
+    '''
     
-    #clean_data_user = cleaning.clean_user_data()
     #Save cleaned data to a csv file
     #clean_data_user.to_csv('users.csv')
     #connector.upload_to_db(clean_data_user, 'dim_users')
     
+    '''
     # Card Data
     
     #cleaned_card_data = cleaning.clean_card_data()
     #connector.upload_to_db(cleaned_card_data, 'dim_card_details')
+    '''
 
     #Store Data
     # API and API key
@@ -171,18 +160,20 @@ if __name__ == "__main__":
     headers = {
         'x-api-key': 'yFBQbwXe9J3sd6zWVAMrK6lcxxr0q1lr2PT6DDMX'
     }
+    '''
     # #print("  check this ",type(endpoint_store_count))
-    #stores_number = extractor.list_number_of_stores(endpoint_store_count,headers)
+    stores_number = extractor.list_number_of_stores(endpoint_store_count,headers)
     # #print("end points called total_stores  ")
-    #stores_data = extractor.retrive_stores_data(stores_number, endpoint_store_details,headers)
-    #stores_data.info()
+    stores_data = extractor.retrive_stores_data(stores_number, endpoint_store_details,headers)
+    
     
     #stores_data.to_csv('store_outputs.csv')
     # #clean_store_table get the cleaned store details from clean_store_data()
-    #clean_stores_data = cleaning.clean_store_data(stores_data)
-    #print(clean_stores_data)
+    clean_stores_data = cleaning.clean_store_data(stores_data)
+    clean_stores_data.info()
     
     #connector.upload_to_db(clean_stores_data, 'dim_store_details')
+    '''
     '''
     # product data
     s3_address = 's3://data-handling-public/products.csv'
@@ -197,9 +188,11 @@ if __name__ == "__main__":
     print(list)
     orders_table = extractor.read_rds_table('orders_table')
     clean_orders_table = cleaning.clean_orders_data(orders_table)
-    orders_table.to_csv('orders_table.csv')
-    connector.upload_to_db(clean_orders_table, 'orders_table')
+    clean_orders_table.info()
+    #orders_table.to_csv('orders_table.csv')
+    #connector.upload_to_db(clean_orders_table, 'orders_table')
     '''
+    
     '''
     # Date Data
     date_data = extractor.extract_from_s3_json("https://data-handling-public.s3.eu-west-1.amazonaws.com/date_details.json")

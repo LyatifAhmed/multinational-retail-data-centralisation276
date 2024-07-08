@@ -33,22 +33,18 @@ ORDER BY total_sales desc;
 -- The company is looking to increase its online sales. They want to know how many sales are happening online vs offline.
 -- Calculate how many products were sold and the amount of sales made for online and offline purchases.
 
-SELECT store_type
-FROM dim_store_details
-WHERE store_type = 'Web Portal';
-
-
-SELECT 
-	COUNT(orders_table.product_quantity) as total_sales,
-	SUM(orders_table.product_quantity) as product_quantity_count,
+SELECT 	count (orders_table.product_quantity) AS numbers_of_sales,
+	sum(orders_table.product_quantity) AS product_quantity_count,
 	CASE 
-		WHEN dim_store_details.store_type = 'Web Portal' then 'Web'
-		ELSE 'Offline'
-	END AS location
+		WHEN dim_store_details.store_code = 'WEB-1388012W' THEN 'Web'
+	ELSE 'Offline'
+	END AS product_location
 FROM orders_table
-	LEFT Join dim_store_details on orders_table.store_code = dim_store_details.store_code
-GROUP BY location
-ORDER BY product_quantity_count;
+	JOIN dim_date_times ON  orders_table.date_uuid = dim_date_times.date_uuid
+	JOIN dim_products ON  orders_table.product_code = dim_products.product_code
+	JOIN dim_store_details ON orders_table.store_code = dim_store_details.store_code
+GROUP BY product_location
+ORDER BY sum(orders_table.product_quantity) ASC;
 
 -- What percentage of sale come through each type of store?
 -- The sales team wants to know which of the different store types has generated the most revenue so they know where to focus.
@@ -73,10 +69,26 @@ ORDER BY number_of_sales desc;
 -- The companu stakeholders want assirances that the company has been doing well recently.
 -- Find which months in which years have had the most sales historically.
 
-SELECT SUM(staff_numbers) as total_staff_numbers, country_code
+SELECT  dim_date_times.year,
+		dim_date_times.month, 
+		round(sum(orders_table.product_quantity*dim_products.product_price)) AS revenue
+FROM orders_table
+	JOIN dim_date_times    ON  orders_table.date_uuid    = dim_date_times.date_uuid
+	JOIN dim_products      ON  orders_table.product_code = dim_products.product_code
+	JOIN dim_store_details ON orders_table.store_code    = dim_store_details.store_code
+GROUP BY 	dim_date_times.month,
+			dim_date_times.year
+ORDER BY    sum(orders_table.product_quantity*dim_products.product_price)  DESC;
+
+-- What is the staff count?
+
+SELECT  COUNT(dim_store_details.staff_numbers) as total_staff_numbers, 
+	dim_store_details.country_code
 FROM dim_store_details
-GROUP BY country_code
-ORDER BY total_staff_numbers desc;
+GROUP BY dim_store_details.country_code
+
+SELECT staff_numbers
+FROM dim_store_details
 
 
 -- Which German store type is selling the most?
